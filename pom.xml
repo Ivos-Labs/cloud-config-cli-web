@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
- 
-  <groupId>com.ivoslabs</groupId>
-	<artifactId>cloud-config-cli-web</artifactId>
-	<version>1.0.0</version>
- 	<packaging>jar</packaging>
 
-	<name>cloud-config-cli-web</name>
+	<groupId>com.ivoslabs</groupId>
+	<artifactId>spring-cloud-config-cli-web</artifactId>
+	<version>1.0.0</version>
+	<packaging>jar</packaging>
+
+	<name>spring cloud config client web</name>
 	<description>Artefact to read remote properties</description>
 	<url>https://github.com/Ivos-Labs/cloud-config-cli-web</url>
 
@@ -27,6 +27,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
+		<slf4j.version>1.7.9</slf4j.version>
+		<!-- Spring -->
+		<spring-framework.version>4.3.7.RELEASE</spring-framework.version>
+
 	</properties>
 
 	<dependencies>
@@ -43,10 +47,51 @@
 			<version>${spring-framework.version}</version>
 		</dependency>
 
+
+		<!-- Logging with SLF4J -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>1.7.26</version>
+		</dependency>
+
+		<!-- Fin Logging with SLF4J -->
+
+		<!-- Spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${spring-framework.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${spring-framework.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.6.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.2</version>
 		</dependency>
 
 		<dependency>
@@ -57,8 +102,8 @@
 		</dependency>
 
 	</dependencies>
-  
-  <organization>
+
+	<organization>
 		<name>Ivos Solutions Labs</name>
 		<url>https://www.ivoslabs.com</url>
 	</organization>
@@ -112,7 +157,7 @@
 									</tags>
 									<show>private</show>
 									<doclint>missing</doclint>
- 								</configuration>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>
