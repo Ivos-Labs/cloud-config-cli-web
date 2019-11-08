@@ -60,7 +60,7 @@ public class RefreshComp {
 	    String[] names = applicationContext.getBeanDefinitionNames();
 	    // valid if the bean is singleton
 	    Predicate<String> isSingleton = this.applicationContext::isSingleton;
-	    // re set the values
+	    // re-asign the values
 	    Stream.of(names).filter(isSingleton).map(this.applicationContext::getBean).forEach(this::reloadFields);
 
 	    status.addProperty("success", Boolean.TRUE);
@@ -92,7 +92,7 @@ public class RefreshComp {
 	List<Field> fields = this.getFields(bean.getClass());
 
 	if (LOGGER.isInfoEnabled() && CollectionUtils.isNotEmpty(fields)) {
-	    LOGGER.info("Reasignando valores en: {}", bean.getClass().getName());
+	    LOGGER.info("Re-injecting values: {}", bean.getClass().getName());
 	}
 
 	fields.forEach(field -> this.setVal(bean, field));

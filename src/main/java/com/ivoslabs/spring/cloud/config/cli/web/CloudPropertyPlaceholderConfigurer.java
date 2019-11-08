@@ -14,6 +14,7 @@ import org.springframework.cloud.config.client.ConfigServicePropertySourceLocato
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
+import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
  * 
@@ -61,6 +62,9 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
     private String uri;
 
     /** servicio spring-cloud-config Profile */
+    private String appName;
+
+    /** servicio spring-cloud-config Profile */
     private String profile;
 
     /** servicio spring-cloud-config Username */
@@ -84,22 +88,23 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 
-	try {
+        try {
 
-	    LOGGER.info("Loading spring-cloud-config-server configuration");
+            LOGGER.info("Loading spring-cloud-config-server configuration");
 
-	    Properties mergedProps = mergeProperties();
-	    // from local properties it will load the accessa data to connect to a spring-cloud-config-server service
-	    this.profile = mergedProps.getProperty("spring.profiles.active");
-	    this.uri = mergedProps.getProperty("spring.cloud.config.uri");
-	    this.username = super.convertPropertyValue(mergedProps.getProperty("spring.cloud.config.username"));
-	    this.password = super.convertPropertyValue(mergedProps.getProperty("spring.cloud.config.password"));
+            Properties mergedProps = mergeProperties();
+            // from local properties it will load the accessa data to connect to a spring-cloud-config-server service
+            this.appName = mergedProps.getProperty("spring.cloud.config.name");
+            this.profile = mergedProps.getProperty("spring.cloud.config.profile");
+            this.uri = mergedProps.getProperty("spring.cloud.config.uri");
+            this.username = super.convertPropertyValue(mergedProps.getProperty("spring.cloud.config.username"));
+            this.password = super.convertPropertyValue(mergedProps.getProperty("spring.cloud.config.password"));
 
-	} catch (IOException ex) {
-	    throw new BeanInitializationException("A error ocurred loading remote properties", ex);
-	}
+        } catch (IOException ex) {
+            throw new BeanInitializationException("A error ocurred loading remote properties", ex);
+        }
 
-	super.postProcessBeanFactory(beanFactory);
+        super.postProcessBeanFactory(beanFactory);
 
     }
 
@@ -111,11 +116,11 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      */
     @Override
     protected void convertProperties(Properties props) {
-	this.props = props;
+        this.props = props;
 
-	this.loadRemoteProperties();
+        this.loadRemoteProperties();
 
-	super.convertProperties(props);
+        super.convertProperties(props);
     }
 
     /**
@@ -127,7 +132,7 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      *
      */
     String getProperty(String key) {
-	return this.props.getProperty(key);
+        return this.props.getProperty(key);
     }
 
     /**
@@ -139,31 +144,36 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      */
     void loadRemoteProperties() {
 
-	LOGGER.info("Loading remote properties from uri: {}; profile: {}", this.uri, this.profile);
+        LOGGER.info("Loading remote properties from uri: {}; profile: {}", this.uri, this.profile);
 
-	PropertySource<?> properySource;
+        PropertySource<?> properySource;
 
-	// spring-cloud-config-server configuration
-	ConfigClientProperties configClientProperties = new ConfigClientProperties(this.environment);
-	configClientProperties.setUri(this.uri);
-	configClientProperties.setName("application");
-	configClientProperties.setProfile(this.profile);
-	configClientProperties.setUsername(this.username);
-	configClientProperties.setPassword(this.password);
-	configClientProperties.setFailFast(Boolean.TRUE);
+        // spring-cloud-config-server configuration
+        ConfigClientProperties configClientProperties = new ConfigClientProperties(this.environment);
 
-	// consume service to load properties
-	properySource = new ConfigServicePropertySourceLocator(configClientProperties).locate(this.environment);
+        configClientProperties.setUri(new String[] { this.uri });
 
-	if (properySource instanceof CompositePropertySource) {
-	    // property names of configured at remote server
-	    String[] names = ((CompositePropertySource) properySource).getPropertyNames();
-	    // search the value for each propertie and add it to local properties instance
+        configClientProperties.setName(this.appName);
+        configClientProperties.setProfile(this.profile);
+        configClientProperties.setUsername(this.username);
+        configClientProperties.setPassword(this.password);
+        configClientProperties.setFailFast(Boolean.TRUE);
 
-	    Stream.of(names).forEach(name -> this.props.setProperty(name, (String) properySource.getProperty(name)));
-	}
+        StandardServletEnvironment s = (StandardServletEnvironment) this.environment;
+        s.getSystemProperties().put("spring.cloud.config.name", this.appName);
 
-	LOGGER.info("Remote properties   initialized uri: {}; profile: {}", this.uri, this.profile);
+        // consume service to load properties
+        properySource = new ConfigServicePropertySourceLocator(configClientProperties).locate(this.environment);
+
+        if (properySource instanceof CompositePropertySource) {
+            // property names of configured at remote server
+            String[] names = ((CompositePropertySource) properySource).getPropertyNames();
+            // search the value for each propertie and add it to local properties instance
+
+            Stream.of(names).forEach(name -> this.props.setProperty(name, (String) properySource.getProperty(name)));
+        }
+
+        LOGGER.info("Remote properties   initialized uri: {}; profile: {}", this.uri, this.profile);
     }
 
     /**
@@ -172,7 +182,7 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      * @param environment {@code Environment} The environment to set
      */
     public void setEnvironment(Environment environment) {
-	this.environment = environment;
+        this.environment = environment;
     }
 
 }
