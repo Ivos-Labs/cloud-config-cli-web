@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 import com.google.gson.JsonObject;
 
 /**
- * Component to reload a re-set the properties from a spring-cloud-config-server service
+ * Component to re-set the properties from a spring-cloud-config-server service
  * 
  * @author imperezivan
  *
@@ -81,6 +81,22 @@ public class RefreshComp {
 	return result;
     }
 
+    /***
+     * *
+     ***/
+
+    /***
+     * *
+     ***/
+
+    /***
+     * *
+     ***/
+
+    /*******************
+     * Private methods *
+     *******************/
+
     /**
      * Re set the values of attributes with {@code value} annotation
      * 
@@ -92,7 +108,7 @@ public class RefreshComp {
 	List<Field> fields = this.getFields(bean.getClass());
 
 	if (LOGGER.isInfoEnabled() && CollectionUtils.isNotEmpty(fields)) {
-	    LOGGER.info("Re-injecting values: {}", bean.getClass().getName());
+	    LOGGER.info("Re-setting values in: {}", bean.getClass().getName());
 	}
 
 	fields.forEach(field -> this.setVal(bean, field));
@@ -139,9 +155,7 @@ public class RefreshComp {
 	try {
 	    String key = field.getDeclaredAnnotation(Value.class).value();
 
-	    key = key.substring(key.indexOf('{') + 1, key.indexOf(':') != -1 ? key.indexOf(':') : key.indexOf('}'));
-
-	    String v = this.configurer.getProperty(key);
+	    String v = this.configurer.resolveCloudProperty(key);
 
 	    if (v != null) {
 		this.parseNSetField(field, bean, v);
