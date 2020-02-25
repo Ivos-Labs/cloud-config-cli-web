@@ -20,7 +20,8 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  * <br>
  * Final endpoint: <code>[ip]:[puerto]/[contexto]/actuator/refresh</code>
  * 
- * @author imperezivan
+ * @since 1.0.0
+ * @author www.ivoslabs.com
  *
  */
 @WebServlet(name = "refresh", urlPatterns = { "/actuator/refresh" })
