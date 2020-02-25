@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.ivoslabs</groupId>
-	<artifactId>spring-cloud-config-cli-web</artifactId>
+	<artifactId>cloud-config-cli-web</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
-	<name>spring cloud config client web</name>
+	<name>Spring Cloud Config Client Web without Spring-boot</name>
 	<description>Artefact to read remote properties</description>
 	<url>https://github.com/Ivos-Labs/cloud-config-cli-web</url>
 
@@ -29,7 +29,6 @@
 
 		<!-- Spring 4.3.7 Conf-->
 		<spring-framework.version>4.3.7.RELEASE</spring-framework.version>
-		<!-- <spring-cloud.version>1.2.0.RELEASE</spring-cloud.version> -->
 		
 		<!-- Spring 5 Conf-->
 		<spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
@@ -54,13 +53,11 @@
 
 				
 		<!-- Logs -->
-
 		 <dependency>
 		    <groupId>org.slf4j</groupId>
 		    <artifactId>jcl-over-slf4j</artifactId>
 		    <version>1.7.26</version>
 		</dependency>
-
 
 		<!-- bridge org.apache.log4j to org.apache.logging.log4j -->
 		<dependency>
@@ -68,13 +65,11 @@
 		    <artifactId>log4j-1.2-api</artifactId>
 		    <version>2.8.1</version>
 		</dependency>
-	
 		
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 			<version>2.8.1</version>
-			
 		</dependency>
 
 		<dependency>
@@ -100,7 +95,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
 		<!-- Fin Logging with SLF4J -->
 
 		<!-- Spring -->
