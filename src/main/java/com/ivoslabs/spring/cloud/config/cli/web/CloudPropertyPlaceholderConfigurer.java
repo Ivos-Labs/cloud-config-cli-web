@@ -74,7 +74,7 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
     /** spring-cloud-config Password */
     private String password;
 
-    /** Environment */
+    /** Interface representing the environment in which the current application is running */
     private Environment environment;
 
     /** The merged properties */
@@ -91,29 +91,29 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      */
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-	LOGGER.info("Loading the spring-cloud-config-server configuration");
+        LOGGER.info("Loading the spring-cloud-config-server configuration");
 
-	try {
+        try {
 
-	    // save a reference to the beanfactory to resolve properties later
-	    this.beanFactory = beanFactory;
+            // save a reference to the beanfactory to resolve properties later
+            this.beanFactory = beanFactory;
 
-	    Properties mergedProps = super.mergeProperties();
+            Properties mergedProps = super.mergeProperties();
 
-	    // get from the local properties the spring-cloud configuration
-	    this.appName = mergedProps.getProperty("spring.cloud.config.name");
-	    this.profile = mergedProps.getProperty("spring.cloud.config.profile");
-	    this.uri = mergedProps.getProperty("spring.cloud.config.uri");
-	    // get the authentication data using the convertPropertyValue method
-	    // because this method can be overriden to implement a cipher
-	    this.username = this.convertPropertyValue(mergedProps.getProperty("spring.cloud.config.username"));
-	    this.password = this.convertPropertyValue(mergedProps.getProperty("spring.cloud.config.password"));
+            // get from the local properties the spring-cloud configuration
+            this.appName = mergedProps.getProperty("spring.cloud.config.name");
+            this.profile = mergedProps.getProperty("spring.cloud.config.profile");
+            this.uri = mergedProps.getProperty("spring.cloud.config.uri");
+            // get the authentication data using the convertPropertyValue method
+            // because this method can be overriden to implement a cipher
+            this.username = this.convertPropertyValue(mergedProps.getProperty("spring.cloud.config.username"));
+            this.password = this.convertPropertyValue(mergedProps.getProperty("spring.cloud.config.password"));
 
-	} catch (IOException e) {
-	    throw new BeanInitializationException("There was an error loading the spring-cloud-config-server configuration", e);
-	}
+        } catch (IOException e) {
+            throw new BeanInitializationException("There was an error loading the spring-cloud-config-server configuration", e);
+        }
 
-	super.postProcessBeanFactory(beanFactory);
+        super.postProcessBeanFactory(beanFactory);
 
     }
 
@@ -125,8 +125,8 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      */
     @Override
     protected String convertPropertyValue(String originalValue) {
-	// this method can be overriden to implement a cipher
-	return originalValue;
+        // this method can be overriden to implement a cipher
+        return originalValue;
     }
 
     /*
@@ -136,14 +136,14 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      * @see org.springframework.beans.factory.config.PropertyPlaceholderConfigurer#processProperties(org.springframework.beans.factory.config.ConfigurableListableBeanFactory, java.util.Properties)
      */
     protected void processProperties(ConfigurableListableBeanFactory beanFactory, Properties props) throws BeansException {
-	// save a reference to the merged properties to edit later
-	this.mergedProperties = props;
-	this.loadRemoteProperties();
-	super.processProperties(beanFactory, props);
+        // save a reference to the merged properties to edit later
+        this.mergedProperties = props;
+        this.loadRemoteProperties();
+        super.processProperties(beanFactory, props);
     }
 
     /**
-     * Resolve the given embedded value, e.g. an annotation attribute.
+     * Resolves the given embedded value, e.g. an annotation attribute.
      * 
      * @param key the value to resolve
      * @return the resolved value (may be the original value as-is)
@@ -152,7 +152,7 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      *
      */
     String resolveCloudProperty(String key) {
-	return this.beanFactory.resolveEmbeddedValue(key);
+        return this.beanFactory.resolveEmbeddedValue(key);
     }
 
     /**
@@ -164,45 +164,45 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      */
     void loadRemoteProperties() {
 
-	LOGGER.info("Loading the remote properties from uri: {}; profile: {}", this.uri, this.profile);
+        LOGGER.info("Loading the remote properties from uri: {}; profile: {}", this.uri, this.profile);
 
-	// spring-cloud-config-server configuration
-	ConfigClientProperties configClientProperties = new ConfigClientProperties(this.environment);
+        // spring-cloud-config-server configuration
+        ConfigClientProperties configClientProperties = new ConfigClientProperties(this.environment);
 
-	configClientProperties.setUri(new String[] { this.uri });
-	configClientProperties.setName(this.appName);
-	configClientProperties.setProfile(this.profile);
-	configClientProperties.setUsername(this.username);
-	configClientProperties.setPassword(this.password);
-	configClientProperties.setFailFast(Boolean.TRUE);
+        configClientProperties.setUri(new String[] { this.uri });
+        configClientProperties.setName(this.appName);
+        configClientProperties.setProfile(this.profile);
+        configClientProperties.setUsername(this.username);
+        configClientProperties.setPassword(this.password);
+        configClientProperties.setFailFast(Boolean.TRUE);
 
-	// in order to ConfigServicePropertySourceLocator use the correct config name
-	// it is saved as system property
-	((StandardServletEnvironment) this.environment).getSystemProperties().put("spring.cloud.config.name", this.appName);
+        // in order to ConfigServicePropertySourceLocator use the correct config name
+        // it is saved as system property
+        ((StandardServletEnvironment) this.environment).getSystemProperties().put("spring.cloud.config.name", this.appName);
 
-	// consume service to load remote properties
-	PropertySource<?> propertySource = new ConfigServicePropertySourceLocator(configClientProperties).locate(this.environment);
+        // consume service to load remote properties
+        PropertySource<?> propertySource = new ConfigServicePropertySourceLocator(configClientProperties).locate(this.environment);
 
-	if (propertySource instanceof CompositePropertySource) {
-	    
-	    // cast to CompositePropertySource to use the getPropertyNames method
-	    CompositePropertySource remotePropertySource = (CompositePropertySource) propertySource;
-	    
-	    // add the remote properties in the merged properties
-	    if (remotePropertySource != null) {
-		// property names of the remote properties
-		String[] names = remotePropertySource.getPropertyNames();
-		// search the value for each property and add them in the merged properties
-		Stream.of(names).forEach(name -> this.mergedProperties.put(name, this.convertPropertyValue((String) remotePropertySource.getProperty(name))));
-	    }
+        if (propertySource instanceof CompositePropertySource) {
 
-	    LOGGER.info("Remote properties were initialized. uri: {}; profile: {}", this.uri, this.profile);
-	} else if (propertySource == null) {
-	    LOGGER.warn("The PropertySource as result of consume the remote properties is null");
-	} else if (LOGGER.isWarnEnabled()) {
-	    String clzz = propertySource.getClass().getName();
-	    LOGGER.warn("The PropertySource as result of consume the remote properties is not a CompositePropertySource, the result was a {}", clzz);
-	}
+            // cast to CompositePropertySource to use the getPropertyNames method
+            CompositePropertySource remotePropertySource = (CompositePropertySource) propertySource;
+
+            // add the remote properties in the merged properties
+            if (remotePropertySource != null) {
+                // property names of the remote properties
+                String[] names = remotePropertySource.getPropertyNames();
+                // search the value for each property and add them in the merged properties
+                Stream.of(names).forEach(name -> this.mergedProperties.put(name, this.convertPropertyValue((String) remotePropertySource.getProperty(name))));
+            }
+
+            LOGGER.info("Remote properties were initialized. uri: {}; profile: {}", this.uri, this.profile);
+        } else if (propertySource == null) {
+            LOGGER.warn("The PropertySource as result of consume the remote properties is null");
+        } else if (LOGGER.isWarnEnabled()) {
+            String clzz = propertySource.getClass().getName();
+            LOGGER.warn("The PropertySource as result of consume the remote properties is not a CompositePropertySource, the result was a {}", clzz);
+        }
 
     }
 
@@ -215,7 +215,7 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      * @author www.ivoslabs.com
      */
     public void setEnvironment(Environment environment) {
-	this.environment = environment;
+        this.environment = environment;
     }
 
 }
