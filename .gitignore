@@ -26,3 +26,8 @@ hs_err_pid*
 .classpath
 .settings/
 target/
+
+# websphere
+/.apt_generated/
+/.apt_generated_tests/
+.factorypath
