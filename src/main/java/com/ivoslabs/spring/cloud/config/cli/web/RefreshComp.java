@@ -23,7 +23,8 @@ import com.google.gson.JsonObject;
 /**
  * Component to re-set the properties from a spring-cloud-config-server service
  * 
- * @author imperezivan
+ * @since 1.0.0
+ * @author www.ivoslabs.com
  *
  */
 @Component
@@ -36,7 +37,7 @@ public class RefreshComp {
     @Autowired
     private CloudPropertyPlaceholderConfigurer configurer;
 
-    /** The applicationContext */
+    /** Central interface to provide configuration for an application */
     @Autowired
     private ApplicationContext applicationContext;
 
@@ -44,41 +45,42 @@ public class RefreshComp {
      * Reload the properties from a remote server and re set the new values into the singleton beans
      * 
      * @return json status as a json
-     * @author imperezivan
+     * @since 1.0.0
+     * @author www.ivoslabs.com
      *
      */
     public final String refresh() {
-	String result;
+        String result;
 
-	JsonObject status = new JsonObject();
-	long ini = System.currentTimeMillis();
+        JsonObject status = new JsonObject();
+        long ini = System.currentTimeMillis();
 
-	try {
-	    // load properties
-	    this.configurer.loadRemoteProperties();
-	    // get current bean names
-	    String[] names = applicationContext.getBeanDefinitionNames();
-	    // valid if the bean is singleton
-	    Predicate<String> isSingleton = this.applicationContext::isSingleton;
-	    // re-asign the values
-	    Stream.of(names).filter(isSingleton).map(this.applicationContext::getBean).forEach(this::reloadFields);
+        try {
+            // load properties
+            this.configurer.loadRemoteProperties();
+            // get current bean names
+            String[] names = applicationContext.getBeanDefinitionNames();
+            // valid if the bean is singleton
+            Predicate<String> isSingleton = this.applicationContext::isSingleton;
+            // re-asign the values
+            Stream.of(names).filter(isSingleton).map(this.applicationContext::getBean).forEach(this::reloadFields);
 
-	    status.addProperty("success", Boolean.TRUE);
-	} catch (Exception e) {
-	    status.addProperty("success", Boolean.FALSE);
-	    status.addProperty("error", e.getMessage());
-	    if (e.getCause() != null) {
-		status.addProperty("cause", e.getCause().getMessage());
-	    }
-	    LOGGER.error(e.getMessage(), e);
-	}
+            status.addProperty("success", Boolean.TRUE);
+        } catch (Exception e) {
+            status.addProperty("success", Boolean.FALSE);
+            status.addProperty("error", e.getMessage());
+            if (e.getCause() != null) {
+                status.addProperty("cause", e.getCause().getMessage());
+            }
+            LOGGER.error(e.getMessage(), e);
+        }
 
-	status.addProperty("time", (System.currentTimeMillis() - ini) + " ms");
-	status.addProperty("date", LocalDateTime.now().toString());
+        status.addProperty("time", (System.currentTimeMillis() - ini) + " ms");
+        status.addProperty("date", LocalDateTime.now().toString());
 
-	result = status.toString();
+        result = status.toString();
 
-	return result;
+        return result;
     }
 
     /***
@@ -101,103 +103,108 @@ public class RefreshComp {
      * Re set the values of attributes with {@code value} annotation
      * 
      * @param bean instance to reload
-     * @author imperezivan
+     * @since 1.0.0
+     * @author www.ivoslabs.com
      *
      */
     private void reloadFields(Object bean) {
-	List<Field> fields = this.getFields(bean.getClass());
 
-	if (LOGGER.isInfoEnabled() && CollectionUtils.isNotEmpty(fields)) {
-	    LOGGER.info("Re-setting values in: {}", bean.getClass().getName());
-	}
+        List<Field> fields = new ArrayList<>();
 
-	fields.forEach(field -> this.setVal(bean, field));
+        this.getFields(bean.getClass(), fields);
+
+        if (LOGGER.isInfoEnabled() && CollectionUtils.isNotEmpty(fields)) {
+            LOGGER.info("Re-setting values in: {}", bean.getClass().getName());
+        }
+
+        fields.forEach(field -> this.setVal(bean, field));
     }
 
     /**
-     * Get the fiels with {@code value} annotation
+     * Get the fields with the {@code value} annotation
      * 
-     * @param clazz clas where will be extracted the fields
-     * @return the list of found attributes
-     * @author imperezivan
+     * @param clazz  class where the fields will be extracted
+     * @param fields array to save the found fields
+     * @since 1.0.0
+     * @author www.ivoslabs.com
      *
      */
-    private List<Field> getFields(Class<?> clazz) {
-	List<Field> fields = new ArrayList<>();
+    private void getFields(Class<?> clazz, List<Field> fields) {
 
-	//
-	Predicate<Field> hasValueAnnotation = field -> field.getDeclaredAnnotation(Value.class) != null;
-	//
-	fields.addAll(Stream.of(clazz.getDeclaredFields()).filter(hasValueAnnotation).collect(Collectors.toList()));
+        // valid whether the field has the Value annotation
+        Predicate<Field> hasValueAnnotation = field -> field.getDeclaredAnnotation(Value.class) != null;
+        // add to fields the fields with the value annotation
+        Stream.of(clazz.getDeclaredFields()).filter(hasValueAnnotation).forEach(fields::add);
 
-	Class<?> superClass = clazz.getSuperclass();
-	//
-	if (!superClass.equals(Object.class)) {
-	    fields.addAll(this.getFields(superClass));
-	}
+        Class<?> superClass = clazz.getSuperclass();
+        if (!superClass.equals(Object.class)) {
+            // if the supper class isn't Object, read its fields with the Value annotation
+            this.getFields(superClass, fields);
+        }
 
-	return fields;
     }
 
     /**
-     * Re assigns the value of an attribute to an instance
+     * Re-assigns the value of an attribute to an instance
      * 
      * 
-     * @param bean  instance where will be set the value
+     * @param bean  instance where the value will be set
      * @param field field to re-set
-     * @author imperezivan
+     * @since 1.0.0
+     * @author www.ivoslabs.com
      *
      */
     private void setVal(Object bean, Field field) {
 
-	field.setAccessible(Boolean.TRUE);
+        field.setAccessible(Boolean.TRUE);
 
-	try {
-	    String key = field.getDeclaredAnnotation(Value.class).value();
+        try {
 
-	    String v = this.configurer.resolveCloudProperty(key);
+            String key = field.getDeclaredAnnotation(Value.class).value();
+            String value = this.configurer.resolveCloudProperty(key);
 
-	    if (v != null) {
-		this.parseNSetField(field, bean, v);
-	    }
+            if (value != null) {
+                this.parseNSetField(field, bean, value);
+            }
 
-	} catch (IllegalArgumentException | IllegalAccessException e) {
-	    LOGGER.error(e.getMessage(), e);
-	}
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
     }
 
     /**
-     * Convert the value to the expected data type and assign it to the attribute
+     * Converts the value to the expected data type and assign it to the attribute
      * 
      * @param field field to set
      * @param bean  object where be set the value
-     * @param v     value to set
+     * @param value value to set
      * @throws NumberFormatException
-     * @throws IllegalArgumentException
      * @throws IllegalAccessException
-     * @author imperezivan
+     * @since 1.0.0
+     * @author www.ivoslabs.com
      *
      */
-    private void parseNSetField(Field field, Object bean, String v) throws IllegalAccessException {
-	if (field.getType() == boolean.class || field.getType() == Boolean.class) {
-	    field.set(bean, Boolean.parseBoolean(v));
-	} else if (field.getType() == int.class || field.getType() == Integer.class) {
-	    field.set(bean, Integer.parseInt(v));
-	} else if (field.getType() == long.class || field.getType() == Long.class) {
-	    field.set(bean, Long.parseLong(v));
-	} else if (field.getType() == float.class || field.getType() == Float.class) {
-	    field.set(bean, Float.parseFloat(v));
-	} else if (field.getType() == double.class || field.getType() == Double.class) {
-	    field.set(bean, Double.parseDouble(v));
-	} else if (field.getType() == BigDecimal.class) {
-	    field.set(bean, new BigDecimal(v));
-	} else if (field.getType() == String.class) {
-	    field.set(bean, v);
-	} else if (field.getType() == String[].class) {
-	    field.set(bean, Arrays.asList(v.split(",")).stream().map(String::trim).collect(Collectors.toList()).toArray(new String[] {}));
-	} else if (LOGGER.isWarnEnabled()) {
-	    LOGGER.warn("The Field  {}  in {} was ignored while loading properties process", field.getName(), bean.getClass().getName());
-	}
+    private void parseNSetField(Field field, Object bean, String value) throws IllegalAccessException {
+
+        if (field.getType() == boolean.class || field.getType() == Boolean.class) {
+            field.set(bean, Boolean.parseBoolean(value));
+        } else if (field.getType() == int.class || field.getType() == Integer.class) {
+            field.set(bean, Integer.parseInt(value));
+        } else if (field.getType() == long.class || field.getType() == Long.class) {
+            field.set(bean, Long.parseLong(value));
+        } else if (field.getType() == float.class || field.getType() == Float.class) {
+            field.set(bean, Float.parseFloat(value));
+        } else if (field.getType() == double.class || field.getType() == Double.class) {
+            field.set(bean, Double.parseDouble(value));
+        } else if (field.getType() == BigDecimal.class) {
+            field.set(bean, new BigDecimal(value));
+        } else if (field.getType() == String.class) {
+            field.set(bean, value);
+        } else if (field.getType() == String[].class) {
+            field.set(bean, Arrays.asList(value.split(",")).stream().map(String::trim).collect(Collectors.toList()).toArray(new String[] {}));
+        } else if (LOGGER.isWarnEnabled()) {
+            LOGGER.warn("The Field  {}  in {} was ignored while loading properties process", field.getName(), bean.getClass().getName());
+        }
     }
 
 }
