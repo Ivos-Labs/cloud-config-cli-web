@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.ivoslabs</groupId>
-	<artifactId>cloud-config-cli-web</artifactId>
+	<artifactId>spring-cloud-config-cli-web</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
-
-	<name>Spring Cloud Config Client Web without Spring-boot</name>
+	
+	<name>Spring Cloud Config Client for web without Spring-boot</name>
 	<description>Artefact to read remote properties</description>
 	<url>https://github.com/Ivos-Labs/cloud-config-cli-web</url>
 
@@ -27,7 +27,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<!-- Spring 4.3.7 Conf-->
+		<!-- Spring framework version -->
 		<spring-framework.version>4.3.7.RELEASE</spring-framework.version>
 		
 		<!-- Spring 5 Conf-->
@@ -52,7 +52,7 @@
 
 
 				
-		<!-- Logs -->
+		<!-- Logging with SLF4J [ -->
 		 <dependency>
 		    <groupId>org.slf4j</groupId>
 		    <artifactId>jcl-over-slf4j</artifactId>
@@ -95,7 +95,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- Fin Logging with SLF4J -->
+		<!-- Logging with SLF4J] -->
 
 		<!-- Spring -->
 		<dependency>
