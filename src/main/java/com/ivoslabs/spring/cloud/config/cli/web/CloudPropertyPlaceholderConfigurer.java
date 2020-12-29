@@ -162,7 +162,7 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
      * @since 1.0.0
      * @author www.ivoslabs.com
      */
-    void loadRemoteProperties() {
+    public void loadRemoteProperties() {
 
         LOGGER.info("Loading the remote properties from uri: {}; profile: {}", this.uri, this.profile);
 
