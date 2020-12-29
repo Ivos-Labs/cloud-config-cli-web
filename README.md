@@ -2,29 +2,29 @@
 
 
 At the moment, spring-cloud-config-client artifact only can be implemented in spring-boot projects, so most of us aren't
-in the role to migrate the weblogic, websphere, etc enviroments of our clients to spring-boot, the artifac cloud-config-cli-web 
+in the role to migrate the weblogic, websphere, etc enviroments of our clients to spring-boot, the artifac cloud-config-cli-web
 allows us to implement spring-cloud-config-client in our web projects.
 
 
 1.- Add cloud-config-cli-client
 
 ```
-<project>        
+<project>
     ...
-        
+
         <properties>
-                
+
                 ...
-                
+
                 <!-- cloud-conf-cli-web version -->
                 <cloud-conf-cli-web.version>1.0.0</cloud-conf-cli-web.version>
-                
+
         </properties>
 
         <dependencies>
 
                 ...
-                
+
                 <!-- cloud-conf-cli-web -->
                 <!-- https://github.com/Ivos-Labs/spring-cloud-conf-cli-web-->
                 <dependency>
@@ -32,9 +32,9 @@ allows us to implement spring-cloud-config-client in our web projects.
                         <artifactId>cloud-config-cli-web</artifactId>
                         <version>${cloud-conf-cli-web.version}</version>
                 </dependency>
-				
+
                 ...
-                
+
         <dependencies>
     ...
 </project>
@@ -42,7 +42,7 @@ allows us to implement spring-cloud-config-client in our web projects.
 
 1.- Implementing CloudPropertyPlaceholderConfigurer in spring
 
-``` 
+```
  <bean id="propertyConfigurer" class="com.ivoslabs.spring.cloud.config.cl.web.CloudPropertyPlaceholderConfigurer">
 	<property name="environment" ref="environment" />
 	<property name="locations">
@@ -50,12 +50,12 @@ allows us to implement spring-cloud-config-client in our web projects.
 			<value>classpath:project.properties</value>
 		</list>
 	</property>
-	
+
 </bean>
 ```
 
-2.- Add the properties required to connect to a spring-cloud-config-server service  
- 
+2.- Add the properties required to connect to a spring-cloud-config-server service
+
 ```
 spring.cloud.config.uri=http://localhost:8888
 spring.cloud.config.name=spring_cloud_conf_web_example
@@ -68,5 +68,21 @@ spring.cloud.config.password=example-pwd
 
 
 4.- endpoint: [ip]:[puerto]/[contexto]/actuator/refresh
+
+  if the appliaction implements servlet-api-3.X endpoint will be expose automatically
+  com.ivoslabs.spring.cloud.config.cli.web.RefreshServlet
+
+
+
+```java
+ @Autowired
+ private RefreshComp refreshComp;
+
+ @RequestMapping("/actuator/refresh" , method = { RequestMethod.GET, RequestMethod.POST }, produces = "application/json;charset=utf-8")
+    public String action() {
+        return this.refreshComp.refresh();
+    }
+```
+
 
 
