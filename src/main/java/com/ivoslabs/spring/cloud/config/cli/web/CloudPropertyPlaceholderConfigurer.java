@@ -6,23 +6,22 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.cloud.config.client.ConfigClientProperties;
 import org.springframework.cloud.config.client.ConfigServicePropertySourceLocator;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
- * 
+ *
  * <br>
- * 
+ *
  * 1.- Implementing CloudPropertyPlaceholderConfigurer in spring
- * 
+ *
  * <pre>
  * <code>&lt;bean id="propertyConfigurer" class="com.ivoslabs.spring.cloud.config.cl.web.CloudPropertyPlaceholderConfigurer">
 	&lt;property name="environment" ref="environment" />
@@ -31,12 +30,12 @@ import org.springframework.web.context.support.StandardServletEnvironment;
 			&lt;value>classpath:project.properties&lt;/value>
 		&lt;/list>
 	&lt;/property>
-	
+
 &lt;/bean></code>
  * </pre>
- * 
+ *
  * 2.- Add the properties required to connect to a spring-cloud-config-server service
- * 
+ *
  * <pre>
  * <code>
  #######################
@@ -49,12 +48,12 @@ spring.cloud.config.profile=dev
 spring.cloud.config.username=example-usr
 spring.cloud.config.password=example-pwd</code>
  * </pre>
- * 
+ *
  * @since 1.0.0
  * @author www.ivoslabs.com
  *
  */
-public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfigurer {
+public class CloudPropertyPlaceholderConfigurer extends PropertySourcesPlaceholderConfigurer {
 
     /** The constant logger */
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudPropertyPlaceholderConfigurer.class);
@@ -84,9 +83,9 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
     private ConfigurableListableBeanFactory beanFactory;
 
     /*
-     * 
+     *
      * (non-Javadoc)
-     * 
+     *
      * @see org.springframework.beans.factory.config.PropertyResourceConfigurer#postProcessBeanFactory(org.springframework.beans.factory.config.ConfigurableListableBeanFactory)
      */
     @Override
@@ -118,9 +117,9 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
     }
 
     /*
-     * 
+     *
      * (non-Javadoc)
-     * 
+     *
      * @see org.springframework.beans.factory.config.PropertyResourceConfigurer#convertPropertyValue(java.lang.String)
      */
     @Override
@@ -130,21 +129,21 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
     }
 
     /*
-     * 
+     *
      * (non-Javadoc)
-     * 
-     * @see org.springframework.beans.factory.config.PropertyPlaceholderConfigurer#processProperties(org.springframework.beans.factory.config.ConfigurableListableBeanFactory, java.util.Properties)
+     *
+     * @see org.springframework.core.io.support.PropertiesLoaderSupport#mergeProperties()
      */
-    protected void processProperties(ConfigurableListableBeanFactory beanFactory, Properties props) throws BeansException {
-        // save a reference to the merged properties to edit later
-        this.mergedProperties = props;
+    @Override
+    protected Properties mergeProperties() throws IOException {
+        this.mergedProperties = super.mergeProperties();
         this.loadRemoteProperties();
-        super.processProperties(beanFactory, props);
+        return this.mergedProperties;
     }
 
     /**
      * Resolves the given embedded value, e.g. an annotation attribute.
-     * 
+     *
      * @param key the value to resolve
      * @return the resolved value (may be the original value as-is)
      * @since 1.0.0
@@ -156,9 +155,9 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
     }
 
     /**
-     * 
+     *
      * Load remote properties from a spring-cloud-config server service
-     * 
+     *
      * @since 1.0.0
      * @author www.ivoslabs.com
      */
@@ -207,7 +206,7 @@ public class CloudPropertyPlaceholderConfigurer extends PropertyPlaceholderConfi
     }
 
     /**
-     * 
+     *
      * Sets the spring environment
      *
      * @param environment the spring environment
